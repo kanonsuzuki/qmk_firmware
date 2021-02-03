@@ -18,6 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include QMK_KEYBOARD_H
 
+enum custom_keycordes {
+    QWERTY = SAFE_RANGE,
+    RGBRST,
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
@@ -81,6 +86,7 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 #define L_LOWER 2
 #define L_RAISE 4
 #define L_ADJUST 8
+#define L_LED 16
 
 void oled_render_layer_state(void) {
     oled_write_P(PSTR("Layer: "), false);
@@ -99,6 +105,16 @@ void oled_render_layer_state(void) {
         case L_ADJUST|L_RAISE:
         case L_ADJUST|L_LOWER|L_RAISE:
             oled_write_ln_P(PSTR("Adjust"), false);
+            break;
+        case L_LED:
+        case L_LED|L_LOWER:
+        case L_LED|L_RAISE:
+        case L_LED|L_ADJUST:
+        case L_LED|L_LOWER|L_RAISE:
+        case L_LED|L_LOWER|L_ADJUST:
+        case L_LED|L_RAISE|L_ADJUST:
+        case L_LED|L_LOWER|L_RAISE|L_ADJUST:
+            oled_write_ln_P(PSTR("LED"), false);
             break;
     }
 }
@@ -168,6 +184,16 @@ void oled_task_user(void) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
     set_keylog(keycode, record);
+  }
+  switch (keycode) {
+     case RGBRST:
+        #ifdef RGBLIGHT_ENABLE
+            if (record->event.pressed) {
+            eeconfig_update_rgblight_default();
+            rgblight_enable();
+            }
+        #endif   //RGBLIGHT_ENABLE
+        break;  
   }
   return true;
 }
